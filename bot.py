@@ -43,7 +43,7 @@ from binance.exceptions import BinanceAPIException
 # --- المفاتيح ---
 ADMIN_ID = 8695560834
 # سحب التوكينات من Render (لن يعمل البوت بدونها في الإعدادات)
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+API_TOKEN = os.getenv('BOT_TOKEN')
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 GROUP_ID = os.getenv('GROUP_ID')
