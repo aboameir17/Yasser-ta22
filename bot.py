@@ -635,7 +635,7 @@ async def execute_trade(user_id, coin_name, trade_type, entry_price, strategy_id
         strategy_trades_check = supabase.table("active_trades").select("id").eq("user_id", str(user_id)).eq("strategy_id", strategy_id).eq("status", "نشطة").execute()
         
         # إذا كان عدد الصفقات النشطة لهذه الاستراتيجية 5 فما فوق، نمنع فتح صفقة جديدة
-        if strategy_trades_check.data and len(strategy_trades_check.data) >= 2:
+        if strategy_trades_check.data and len(strategy_trades_check.data) >= 3:
             print(f"⏳ تجاهل فتح صفقة {coin_name}: الاستراتيجية رقم {strategy_id} ('{strategy_name}') وصلت للحد الأقصى (5 صفقات نشطة). ننتظر إغلاق إحداها.")
             return False
 
@@ -1111,6 +1111,84 @@ class TelegramLoggerHandler(logging.Handler):
             await self.bot.send_message(self.chat_id, msg, parse_mode="HTML")
         except Exception:
             pass
+class BankTransfer(StatesGroup):
+    waiting_for_amount = State()      # انتظار مبلغ التحويل/الإيداع
+    waiting_for_account = State()     # انتظار رقم الحساب (في حال التحويل لشخص)
+
+# ==========================================
+# 6. معالج أمر البدء المطور في الخاص /start
+# ==========================================
+@dp.message_handler(commands=['start'], chat_type=types.ChatType.PRIVATE)
+async def private_start_handler(message: types.Message):
+    user_id = message.from_user.id
+    first_name = message.from_user.first_name
+    last_name = message.from_user.last_name or ""
+    username = f"@{message.from_user.username}" if message.from_user.username else "بدون معرف"
+    full_name = f"{first_name} {last_name}".strip()
+    
+    # ---------------------------------------------------------
+    # 🚨 [ نظام إنذار المطور: إرسال إشعار للمجموعة بدخول شخص جديد ]
+    # ---------------------------------------------------------
+    try:
+        # تأكد أن المتغير GROUP_ID مسحوب بشكل صحيح في بداية ملفك
+        if GROUP_ID: 
+            # إنشاء رابط يفتح بروفايل الشخص بمجرد الضغط على اسمه
+            user_profile_link = f"<a href='tg://user?id={user_id}'>{full_name}</a>"
+            
+            alert_msg = (
+                f"🚨 <b>رادار البوت: مستخدم جديد!</b>\n\n"
+                f"👤 <b>الاسم:</b> {user_profile_link}\n"
+                f"🔗 <b>المعرف:</b> {username}\n"
+                f"🆔 <b>الآيدي:</b> <code>{user_id}</code>"
+            )
+            # إرسال الإشعار للمجموعة
+            await bot.send_message(chat_id=GROUP_ID, text=alert_msg, parse_mode="HTML")
+    except Exception as e:
+        import logging
+        logging.error(f"❌ خطأ في إرسال إشعار دخول المستخدم للمجموعة: {e}")
+
+    # ---------------------------------------------------------
+    # 📲 [ لوحة الأزرار ورسالة الترحيب للمستخدم ]
+    # ---------------------------------------------------------
+    kb_start = InlineKeyboardMarkup(row_width=2)
+    kb_start.add(
+        InlineKeyboardButton("💻 تواصل مع المطور", url="https://t.me/Ya_79k"),
+        InlineKeyboardButton("📢 قناة البوت", url="https://t.me/YourChannel") # لا تنسَ تعديل رابط القناة هنا
+    )
+
+    # تحسين التنسيق ليكون أكثر احترافية وفخامة
+    welcome_msg = (
+        f"👋 <b>أهلاً بك يا {first_name} في أعظم نظام تداول في سوق العملات الرقمية!</b> 🚀\n\n"
+        f"يتفوق هذا النظام على البنوك، صناديق التحوط، والمواقع المدفوعة بمراحل؛ بل هي مجرد ألعاب أطفال مقارنةً بالمنطق الجبار الذي يحتويه.\n\n"
+        f"👁️‍🗨️ <b>ماذا يقدم لك النظام؟</b>\n"
+        f"• كاشف متقدم للسوق، الخديعة، المصائد، وتلاعبات الحيتان.\n"
+        f"• أسرار وخفايا حصرية لا تُدرّس حتى في الجامعات.\n"
+        f"• نظام إنذار استباقي قبل وقوع الأحداث بمليون مرة .\n"
+        f"• نظام إجراء صفقات آلي كل ما عليك هو ربط حسابك بالنظام وهو يقوم بالتداول بدلاً عنك واكثر أمانا بنسبة 100.\n"
+        f"• درع أمان متكامل لحمايتك من فوضى وتقلبات السوق ضمان لو خسرت تتعوض والخسارة عندنا مستحيلة.\n\n"
+        f"💳 <b> تفاصيل أسعار الباقات بالدولار:</b>\n"
+        f"▫️ أسبوع: <b>25$</b>\n"
+        f"▫️ شهر: <b>100$</b>\n"
+        f"▫️ 3 أشهر: <b>250$</b>\n"
+        f"▫️ 6 أشهر: <b>400$</b>\n"
+        f"▫️ سنة كاملة: <b>600$</b>\n\n"
+        f"<i>🤍 ملاحظة: جميع أموال الاشتراكات تذهب لدعم الفقراء واليتامى ابتغاء وجه الله تعالى اما انا مكتفي بما علمني ربي واعطاني من فضله.</i>\n\n"
+        f"💬 <b>للتواصل المباشر مع المطور، طلب الاشتراك، أو الإبلاغ عن خلل فني، يرجى استخدام الأزرار أدناه.</b>\n"
+        f"نتمنى لكم التوفيق والنجاح الدائم اكتشف اسرار مخفية عنك وكن مليونير."
+    )
+    
+    try:
+        # Photo ID الخاص بصورة الترحيب (يفضل صورة فخمة للبوت)
+        bot_photo = "AgACAgQAAxkBAA..." 
+        await message.answer_photo(
+            photo=bot_photo,
+            caption=welcome_msg,
+            reply_markup=kb_start,
+            parse_mode="HTML"
+        )
+    except Exception:
+        # في حال كانت الصورة غير صالحة، يرسل النص فقط
+        await message.answer(welcome_msg, reply_markup=kb_start, parse_mode="HTML")
 
 # ==========================================
 # 5. نهاية الملف: نظام الإنعاش الأبدي 24/7 (النبض الذاتي) ⚡
