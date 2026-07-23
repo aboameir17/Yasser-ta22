@@ -176,6 +176,7 @@ async def intelligence_scanner():
             vwap_4h = float(coin.get('vwap_4h') or 0.0)
             volume_delta_1h = float(coin.get('volume_delta_1h') or 0.0)
             mfi_15m = float(coin.get('mfi_15m') or 50.0) # السيولة
+            williams_r_1h = float(coin.get('williams_r_1h') or 0.0)
 
             # --- السوبر تريند ---
             supertrend_1h = float(coin.get('supertrend_1h') or 0.0)
@@ -193,6 +194,35 @@ async def intelligence_scanner():
             volume_delta_15m = float(coin.get('volume_delta_15m') or 0.0)
             kc_upper_1h = float(coin.get('kc_upper_1h') or 0.0) 
             kc_lower_1h = float(coin.get('kc_lower_1h') or 0.0)
+            # --- مؤشرات 15 دقيقة الناقصة ---
+            kc_upper_15m = float(coin.get('kc_upper_15m') or 0.0)
+            kc_lower_15m = float(coin.get('kc_lower_15m') or 0.0)
+            vwap_15m = float(coin.get('vwap_15m') or price)
+            
+            # --- مؤشرات 1 ساعة الناقصة ---
+            cmf_1h = float(coin.get('cmf_1h') or 0.0)
+            stochastic_k_1h = float(coin.get('stochastic_k_1h') or 50.0)
+            choppiness_index_1h = float(coin.get('choppiness_index_1h') or 50.0)
+            obv_slope_1h = float(coin.get('obv_slope_1h') or 0.0)
+            parabolic_sar_1h = float(coin.get('parabolic_sar_1h') or 0.0)
+            mfi_1h = float(coin.get('mfi_1h') or 50.0)
+            volume_1h = float(coin.get('volume_1h') or 0.0)
+            volume_ma_1h = float(coin.get('volume_ma_1h') or 1.0)
+            
+            # --- سحابة الإيشيموكو 1 ساعة ---
+            ichimoku_cloud_top_1h = float(coin.get('ichimoku_cloud_top_1h') or 0.0)
+            ichimoku_cloud_bottom_1h = float(coin.get('ichimoku_cloud_bottom_1h') or 0.0)
+            ichimoku_conversion_1h = float(coin.get('ichimoku_conversion_1h') or 0.0)
+            ichimoku_base_1h = float(coin.get('ichimoku_base_1h') or 0.0)
+            
+            # --- مناطق القيمة والـ POC (1 ساعة) ---
+            value_area_high_1h = float(coin.get('value_area_high_1h') or price * 1.02)
+            value_area_low_1h = float(coin.get('value_area_low_1h') or price * 0.98)
+            poc_price_1h = float(coin.get('poc_price_1h') or price)
+            
+            # --- مؤشرات 2 ساعة ---
+            volume_delta_2h = float(coin.get('volume_delta_2h') or 0.0)
+            parabolic_sar_2h = float(coin.get('parabolic_sar_2h') or 0.0)
 
             # ==========================================
             # 🎯 2. بنك الاستراتيجيات السريعة (52 استراتيجية)
