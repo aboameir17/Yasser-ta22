@@ -180,6 +180,19 @@ async def intelligence_scanner():
             # --- السوبر تريند ---
             supertrend_1h = float(coin.get('supertrend_1h') or 0.0)
             supertrend_15m = float(coin.get('supertrend_15m') or 0.0)
+            # --- استكمال مؤشرات 15 دقيقة المطلوبة للسكالبينج الخاطف ---
+            stochastic_k_15m = float(coin.get('stochastic_k_15m') or 50.0)
+            stochastic_d_15m = float(coin.get('stochastic_d_15m') or 50.0)
+            obv_15m = float(coin.get('obv_15m') or 0.0)
+            obv_slope_15m = float(coin.get('obv_slope_15m') or 0.0)
+            mfi_15m = float(coin.get('mfi_15m') or 50.0)
+            cmf_15m = float(coin.get('cmf_15m') or 0.0)
+            williams_r_15m = float(coin.get('williams_r_15m') or -50.0)
+            choppiness_index_15m = float(coin.get('choppiness_index_15m') or 50.0)
+            parabolic_sar_15m = float(coin.get('parabolic_sar_15m') or 0.0)
+            volume_delta_15m = float(coin.get('volume_delta_15m') or 0.0)
+            kc_upper_1h = float(coin.get('kc_upper_1h') or 0.0) 
+            kc_lower_1h = float(coin.get('kc_lower_1h') or 0.0)
 
             # ==========================================
             # 🎯 2. بنك الاستراتيجيات السريعة (52 استراتيجية)
@@ -194,7 +207,7 @@ async def intelligence_scanner():
                 
             # 🔺 2. العكس: السعر قرب قمة 24 ساعة + ماكد 15د أخضر
             elif price >= (high_24h * 0.985) and macd_hist_15m > 0:
-                strategy_id, strategy_name, trade_type = 2, "اختراق قمة 24 ساعة + ماكد إيجابي", "LONG"
+                strategy_id, strategy_name, trade_type = 2, "اختراق قمة 24 ساعة + ماكد إيجابي", "SHORT"
 
             # --- استراتيجيات الحيتان والأوردر بوك (سكالبينج خاطف) ---
             elif whale_absorption_detected and taker_buy_ratio_1h > 1.2 and price > vwap_1h:
@@ -313,6 +326,272 @@ async def intelligence_scanner():
                 strategy_id, strategy_name, trade_type = 51, "سيولة بيعية طاغية (Orderbook)", "SHORT"
             elif price <= low_24h and rsi_15m > 30 and macd_hist_15m > 0:
                 strategy_id, strategy_name, trade_type = 52, "دبل بوتوم (Double Bottom) يومي", "LONG"
+            # ==========================================
+            # 🚀 استراتيجيات Williams %R و MFI (تشبع السيولة السريع)
+            # ==========================================
+            elif williams_r_15m < -85 and mfi_15m < 20 and volume_delta_15m > 0:
+                strategy_id, strategy_name, trade_type = 53, "تشبع بيعي Williams+MFI (قاع سريع)", "LONG"
+            elif williams_r_15m > -15 and mfi_15m > 80 and volume_delta_15m < 0:
+                strategy_id, strategy_name, trade_type = 54, "تشبع شرائي Williams+MFI (قمة سريعة)", "SHORT"
+            elif williams_r_1h < -90 and price > kc_lower_15m and macd_hist_15m > 0:
+                strategy_id, strategy_name, trade_type = 55, "ارتداد Williams من قاع القناة", "LONG"
+            elif williams_r_1h > -10 and price < kc_upper_15m and macd_hist_15m < 0:
+                strategy_id, strategy_name, trade_type = 56, "ارتداد Williams من قمة القناة", "SHORT"
+            
+            # ==========================================
+            # 🌊 استراتيجيات Chaikin Money Flow (CMF) وتدفق الأموال
+            # ==========================================
+            elif cmf_15m > 0.15 and cmf_1h > 0.1 and price > vwap_15m:
+                strategy_id, strategy_name, trade_type = 57, "تدفق أموال قوي (CMF إيجابي مزدوج)", "LONG"
+            elif cmf_15m < -0.15 and cmf_1h < -0.1 and price < vwap_15m:
+                strategy_id, strategy_name, trade_type = 58, "هروب أموال قوي (CMF سلبي مزدوج)", "SHORT"
+            elif cmf_15m > 0.2 and rsi_15m < 45:
+                strategy_id, strategy_name, trade_type = 59, "تجميع خفي (RSI هابط + CMF صاعد)", "LONG"
+            elif cmf_15m < -0.2 and rsi_15m > 55:
+                strategy_id, strategy_name, trade_type = 60, "تصريف خفي (RSI صاعد + CMF هابط)", "SHORT"
+
+            # ==========================================
+            # 🎯 استراتيجيات الاستوكاستيك (Stochastic) السريعة
+            # ==========================================
+            elif stochastic_k_15m < 20 and stochastic_k_15m > stochastic_d_15m and rsi_15m > 30:
+                strategy_id, strategy_name, trade_type = 61, "تقاطع استوكاستيك إيجابي من القاع", "LONG"
+            elif stochastic_k_15m > 80 and stochastic_k_15m < stochastic_d_15m and rsi_15m < 70:
+                strategy_id, strategy_name, trade_type = 62, "تقاطع استوكاستيك سلبي من القمة", "SHORT"
+            elif stochastic_k_1h < 20 and stochastic_k_15m > 50 and macd_hist_15m > 0:
+                strategy_id, strategy_name, trade_type = 63, "دعم استوكاستيك 1س مع انطلاقة 15د", "LONG"
+            elif stochastic_k_1h > 80 and stochastic_k_15m < 50 and macd_hist_15m < 0:
+                strategy_id, strategy_name, trade_type = 64, "مقاومة استوكاستيك 1س مع هبوط 15د", "SHORT"
+
+            # ==========================================
+            # 📏 استراتيجيات قنوات كيلتنر (Keltner Channels)
+            # ==========================================
+            elif price > kc_upper_15m and adx_1h > 25 and volume_delta_15m > 0:
+                strategy_id, strategy_name, trade_type = 65, "اختراق كيلتنر صاعد بزخم قوي", "LONG"
+            elif price < kc_lower_15m and adx_1h > 25 and volume_delta_15m < 0:
+                strategy_id, strategy_name, trade_type = 66, "كسر كيلتنر هابط بزخم قوي", "SHORT"
+            elif price < kc_lower_15m and stochastic_k_15m < 15 and rsi_15m < 30:
+                strategy_id, strategy_name, trade_type = 67, "ارتداد سكالبينج من قاع كيلتنر", "LONG"
+            elif price > kc_upper_15m and stochastic_k_15m > 85 and rsi_15m > 70:
+                strategy_id, strategy_name, trade_type = 68, "ارتداد سكالبينج من قمة كيلتنر", "SHORT"
+
+            # ==========================================
+            # 🌪️ استراتيجيات مؤشر التذبذب والترند (Choppiness & ADX)
+            # ==========================================
+            elif choppiness_index_1h < 38.2 and adx_1h > 30 and price > ema_20_15m:
+                strategy_id, strategy_name, trade_type = 69, "بداية ترند صاعد قوي (انعدام التذبذب)", "LONG"
+            elif choppiness_index_1h < 38.2 and adx_1h > 30 and price < ema_20_15m:
+                strategy_id, strategy_name, trade_type = 70, "بداية ترند هابط قوي (انعدام التذبذب)", "SHORT"
+            elif choppiness_index_15m > 61.8 and price <= bb_lower_15m and rsi_15m < 40:
+                strategy_id, strategy_name, trade_type = 71, "شراء من دعم عرضي (سوق متذبذب)", "LONG"
+            elif choppiness_index_15m > 61.8 and price >= bb_upper_15m and rsi_15m > 60:
+                strategy_id, strategy_name, trade_type = 72, "بيع من مقاومة عرضية (سوق متذبذب)", "SHORT"
+
+            # ==========================================
+            # 📊 استراتيجيات الحجم التراكمي (OBV - On Balance Volume)
+            # ==========================================
+            elif obv_slope_15m > 0 and obv_slope_1h > 0 and price > vwap_15m:
+                strategy_id, strategy_name, trade_type = 73, "زخم OBV تصاعدي مع VWAP", "LONG"
+            elif obv_slope_15m < 0 and obv_slope_1h < 0 and price < vwap_15m:
+                strategy_id, strategy_name, trade_type = 74, "زخم OBV تنازلي مع VWAP", "SHORT"
+            elif price < ema_20_15m and obv_slope_15m > 0 and macd_hist_15m > 0:
+                strategy_id, strategy_name, trade_type = 75, "دايفرجنس OBV إيجابي (السعر يهبط والحجم يصعد)", "LONG"
+            elif price > ema_20_15m and obv_slope_15m < 0 and macd_hist_15m < 0:
+                strategy_id, strategy_name, trade_type = 76, "دايفرجنس OBV سلبي (السعر يصعد والحجم يهبط)", "SHORT"
+
+            # ==========================================
+            # ☁️ استراتيجيات سحابة الإيشيموكو (Ichimoku) اللحظية
+            # ==========================================
+            elif price > ichimoku_cloud_top_1h and price > ema_20_15m and rsi_15m < 60:
+                strategy_id, strategy_name, trade_type = 77, "استمرار فوق سحابة إيشيموكو 1س", "LONG"
+            elif price < ichimoku_cloud_bottom_1h and price < ema_20_15m and rsi_15m > 40:
+                strategy_id, strategy_name, trade_type = 78, "استمرار تحت سحابة إيشيموكو 1س", "SHORT"
+            elif price > ichimoku_conversion_1h and ichimoku_conversion_1h > ichimoku_base_1h:
+                strategy_id, strategy_name, trade_type = 79, "تقاطع إيشيموكو الذهبي 1س", "LONG"
+            elif price < ichimoku_conversion_1h and ichimoku_conversion_1h < ichimoku_base_1h:
+                strategy_id, strategy_name, trade_type = 80, "تقاطع إيشيموكو الميت 1س", "SHORT"
+
+            # ==========================================
+            # ⚡ استراتيجيات Parabolic SAR اللحظية
+            # ==========================================
+            elif price > parabolic_sar_15m and parabolic_sar_1h < price and macd_hist_15m > 0:
+                strategy_id, strategy_name, trade_type = 81, "توافق Parabolic SAR شرائي 15د+1س", "LONG"
+            elif price < parabolic_sar_15m and parabolic_sar_1h > price and macd_hist_15m < 0:
+                strategy_id, strategy_name, trade_type = 82, "توافق Parabolic SAR بيعي 15د+1س", "SHORT"
+            elif price > parabolic_sar_15m and volume_delta_15m > 0 and rsi_15m > 55:
+                strategy_id, strategy_name, trade_type = 83, "انعكاس Parabolic SAR بزخم فوليوم", "LONG"
+            elif price < parabolic_sar_15m and volume_delta_15m < 0 and rsi_15m < 45:
+                strategy_id, strategy_name, trade_type = 84, "كسر Parabolic SAR بزخم فوليوم", "SHORT"
+
+            # ==========================================
+            # 🐋 دمج الحيتان والأوردر بوك مع المؤشرات السريعة (سكالبينج عنيف)
+            # ==========================================
+            elif whale_absorption_detected and mfi_15m < 30 and stochastic_k_15m < 20:
+                strategy_id, strategy_name, trade_type = 85, "امتصاص حيتان في مناطق تشبع بيعي", "LONG"
+            elif orderbook_imbalance_ratio > 0.6 and cmf_15m > 0.1 and adx_1h > 25:
+                strategy_id, strategy_name, trade_type = 86, "ضغط بوك شرائي + سيولة CMF + ترند", "LONG"
+            elif orderbook_imbalance_ratio < -0.6 and cmf_15m < -0.1 and adx_1h > 25:
+                strategy_id, strategy_name, trade_type = 87, "ضغط بوك بيعي + هروب CMF + ترند", "SHORT"
+            elif whale_net_flow_volume > 1000000 and price > vwap_15m and macd_hist_15m > 0:
+                strategy_id, strategy_name, trade_type = 88, "دخول حوت مليوني فوق VWAP", "LONG"
+            elif whale_net_flow_volume < -1000000 and price < vwap_15m and macd_hist_15m < 0:
+                strategy_id, strategy_name, trade_type = 89, "تخارج حوت مليوني تحت VWAP", "SHORT"
+
+            # ==========================================
+            # 🎯 استراتيجيات Value Area و POC (مناطق القيمة)
+            # ==========================================
+            elif price > value_area_high_1h and volume_delta_15m > 0 and rsi_15m < 65:
+                strategy_id, strategy_name, trade_type = 90, "اختراق منطقة القيمة العليا (Volume Profile)", "LONG"
+            elif price < value_area_low_1h and volume_delta_15m < 0 and rsi_15m > 35:
+                strategy_id, strategy_name, trade_type = 91, "كسر منطقة القيمة السفلى (Volume Profile)", "SHORT"
+            elif (price >= poc_price_1h * 0.998 and price <= poc_price_1h * 1.002) and macd_hist_15m > 0:
+                strategy_id, strategy_name, trade_type = 92, "ارتداد شرائي من خط الـ POC", "LONG"
+            elif (price >= poc_price_1h * 0.998 and price <= poc_price_1h * 1.002) and macd_hist_15m < 0:
+                strategy_id, strategy_name, trade_type = 93, "ارتداد بيعي من خط الـ POC", "SHORT"
+
+            # ==========================================
+            # 🔥 استراتيجيات 94 إلى 150 (كومبو سكالبينج وفوليوم وإشارات متقدمة)
+            # ==========================================
+            elif rsi_15m > rsi_1h and rsi_15m > 60 and adx_15m > 25:
+                strategy_id, strategy_name, trade_type = 94, "تسارع RSI لحظي (سكالب صاعد)", "LONG"
+            elif rsi_15m < rsi_1h and rsi_15m < 40 and adx_15m > 25:
+                strategy_id, strategy_name, trade_type = 95, "تسارع RSI لحظي (سكالب هابط)", "SHORT"
+            
+            elif price > ema_50_15m and price < ema_20_15m and stochastic_k_15m < 20:
+                strategy_id, strategy_name, trade_type = 96, "صيد الارتداد بين EMA20 و EMA50", "LONG"
+            elif price < ema_50_15m and price > ema_20_15m and stochastic_k_15m > 80:
+                strategy_id, strategy_name, trade_type = 97, "صيد الرفض بين EMA20 و EMA50", "SHORT"
+
+            elif mfi_15m > 85 and rsi_15m > 75 and price > bb_upper_15m:
+                strategy_id, strategy_name, trade_type = 98, "انفجار سعري متطرف (شورت قناص)", "SHORT"
+            elif mfi_15m < 15 and rsi_15m < 25 and price < bb_lower_15m:
+                strategy_id, strategy_name, trade_type = 99, "انهيار سعري متطرف (لونج قناص)", "LONG"
+
+            elif volume_delta_1h > 0 and volume_delta_2h > 0 and macd_hist_15m > 0:
+                strategy_id, strategy_name, trade_type = 100, "دلتا فوليوم خضراء متتالية (1س+2س)", "LONG"
+            elif volume_delta_1h < 0 and volume_delta_2h < 0 and macd_hist_15m < 0:
+                strategy_id, strategy_name, trade_type = 101, "دلتا فوليوم حمراء متتالية (1س+2س)", "SHORT"
+
+            elif taker_buy_ratio_1h > 2.0 and rsi_15m < 50:
+                strategy_id, strategy_name, trade_type = 102, "شراء ماركت مكثف مباغت (Taker Ratio>2)", "LONG"
+            elif taker_buy_ratio_1h < 0.3 and rsi_15m > 50:
+                strategy_id, strategy_name, trade_type = 103, "بيع ماركت مكثف مباغت (Taker Ratio<0.3)", "SHORT"
+
+            elif cmf_1h > 0.2 and mfi_1h > 60 and price > ema_20_15m:
+                strategy_id, strategy_name, trade_type = 104, "سيولة 1س تدعم السكالب الشرائي 15د", "LONG"
+            elif cmf_1h < -0.2 and mfi_1h < 40 and price < ema_20_15m:
+                strategy_id, strategy_name, trade_type = 105, "سيولة 1س تدعم السكالب البيعي 15د", "SHORT"
+
+            elif price == high_24h and macd_hist_15m > 0 and volume_delta_1h > 0:
+                strategy_id, strategy_name, trade_type = 106, "اختراق قمة يومية حقيقية (فوليوم أخضر)", "LONG"
+            elif price == low_24h and macd_hist_15m < 0 and volume_delta_1h < 0:
+                strategy_id, strategy_name, trade_type = 107, "كسر قاع يومي حقيقي (فوليوم أحمر)", "SHORT"
+
+            elif williams_r_15m > -20 and stochastic_k_15m > 80 and macd_hist_15m < 0:
+                strategy_id, strategy_name, trade_type = 108, "تضارب زخم القمة (Williams+Stoch ضد MACD)", "SHORT"
+            elif williams_r_15m < -80 and stochastic_k_15m < 20 and macd_hist_15m > 0:
+                strategy_id, strategy_name, trade_type = 109, "تضارب زخم القاع (Williams+Stoch ضد MACD)", "LONG"
+
+            elif choppiness_index_15m < 30 and supertrend_15m < price and rsi_15m < 60:
+                strategy_id, strategy_name, trade_type = 110, "ترند 15د صلب مع سوبر تريند", "LONG"
+            elif choppiness_index_15m < 30 and supertrend_15m > price and rsi_15m > 40:
+                strategy_id, strategy_name, trade_type = 111, "ترند 15د هابط مع سوبر تريند", "SHORT"
+
+            elif bb_upper_1h - bb_lower_1h < (price * 0.015) and price > bb_upper_15m:
+                strategy_id, strategy_name, trade_type = 112, "انفجار اختناق 1س للأعلى (Squeeze Break)", "LONG"
+            elif bb_upper_1h - bb_lower_1h < (price * 0.015) and price < bb_lower_15m:
+                strategy_id, strategy_name, trade_type = 113, "انفجار اختناق 1س للأسفل (Squeeze Break)", "SHORT"
+
+            elif obv_slope_1h > 0 and cmf_1h > 0 and rsi_15m == 50:
+                strategy_id, strategy_name, trade_type = 114, "اختراق خط الـ 50 RSI بدعم OBV+CMF", "LONG"
+            elif obv_slope_1h < 0 and cmf_1h < 0 and rsi_15m == 50:
+                strategy_id, strategy_name, trade_type = 115, "كسر خط الـ 50 RSI بضغط OBV+CMF", "SHORT"
+
+            elif whale_absorption_detected and price < ema_200_1h and stochastic_k_15m < 20:
+                strategy_id, strategy_name, trade_type = 116, "حيتان تشتري تحت الـ 200 EMA", "LONG"
+            elif orderbook_imbalance_ratio > 0.9 and volume_1h > volume_ma_1h:
+                strategy_id, strategy_name, trade_type = 117, "أوردر بوك شرائي متطرف + فوليوم سبايك", "LONG"
+            elif orderbook_imbalance_ratio < -0.9 and volume_1h > volume_ma_1h:
+                strategy_id, strategy_name, trade_type = 118, "أوردر بوك بيعي متطرف + فوليوم سبايك", "SHORT"
+
+            elif price > ema_20_15m and price > ema_50_15m and price > ema_100_15m and rsi_15m < 60:
+                strategy_id, strategy_name, trade_type = 119, "المروحة الشرائية (EMA 20,50,100)", "LONG"
+            elif price < ema_20_15m and price < ema_50_15m and price < ema_100_15m and rsi_15m > 40:
+                strategy_id, strategy_name, trade_type = 120, "المروحة البيعية (EMA 20,50,100)", "SHORT"
+
+            elif kc_upper_15m > bb_upper_15m and price > kc_upper_15m:
+                strategy_id, strategy_name, trade_type = 121, "اختراق بولنجر داخل كيلتنر صاعد", "LONG"
+            elif kc_lower_15m < bb_lower_15m and price < kc_lower_15m:
+                strategy_id, strategy_name, trade_type = 122, "كسر بولنجر داخل كيلتنر هابط", "SHORT"
+
+            elif parabolic_sar_15m < price and parabolic_sar_1h < price and parabolic_sar_2h < price:
+                strategy_id, strategy_name, trade_type = 123, "توافق Parabolic SAR ثلاثي الأبعاد (صعود)", "LONG"
+            elif parabolic_sar_15m > price and parabolic_sar_1h > price and parabolic_sar_2h > price:
+                strategy_id, strategy_name, trade_type = 124, "توافق Parabolic SAR ثلاثي الأبعاد (هبوط)", "SHORT"
+
+            elif adx_1h < 15 and bbw_15m < 0.015 and macd_hist_15m > 0.001:
+                strategy_id, strategy_name, trade_type = 125, "تجميع هادئ جداً قبل بامب محتمل", "LONG"
+            elif adx_1h < 15 and bbw_15m < 0.015 and macd_hist_15m < -0.001:
+                strategy_id, strategy_name, trade_type = 126, "تصريف هادئ جداً قبل دامب محتمل", "SHORT"
+
+            elif rsi_15m > 65 and stochastic_k_15m > 85 and macd_hist_15m < macd_signal_15m:
+                strategy_id, strategy_name, trade_type = 127, "تقاطع ماكد سلبي في مناطق الذروة", "SHORT"
+            elif rsi_15m < 35 and stochastic_k_15m < 15 and macd_hist_15m > macd_signal_15m:
+                strategy_id, strategy_name, trade_type = 128, "تقاطع ماكد إيجابي في مناطق القاع", "LONG"
+
+            elif price > vwap_15m and price > poc_price_1h and obv_slope_15m > 0:
+                strategy_id, strategy_name, trade_type = 129, "دعم مزدوج (VWAP + POC) مع OBV", "LONG"
+            elif price < vwap_15m and price < poc_price_1h and obv_slope_15m < 0:
+                strategy_id, strategy_name, trade_type = 130, "مقاومة مزدوجة (VWAP + POC) مع OBV", "SHORT"
+
+            elif williams_r_1h < -80 and williams_r_15m > -50 and mfi_15m > 50:
+                strategy_id, strategy_name, trade_type = 131, "تعافي سريع من قاع Williams", "LONG"
+            elif williams_r_1h > -20 and williams_r_15m < -50 and mfi_15m < 50:
+                strategy_id, strategy_name, trade_type = 132, "سقوط سريع من قمة Williams", "SHORT"
+
+            elif cmf_1h > 0.15 and taker_buy_ratio_1h > 1.3 and price > ema_20_1h:
+                strategy_id, strategy_name, trade_type = 133, "ضغط شراء ماركت مع CMF عالي", "LONG"
+            elif cmf_1h < -0.15 and taker_buy_ratio_1h < 0.7 and price < ema_20_1h:
+                strategy_id, strategy_name, trade_type = 134, "ضغط بيع ماركت مع CMF سلبي", "SHORT"
+
+            elif change_24h > 15 and rsi_15m > 80 and volume_delta_15m < 0:
+                strategy_id, strategy_name, trade_type = 135, "شورت عكسي سريع (بامب مفرط 24س)", "SHORT"
+            elif change_24h < -15 and rsi_15m < 20 and volume_delta_15m > 0:
+                strategy_id, strategy_name, trade_type = 136, "سكين ساقطة لونج (دامب مفرط 24س)", "LONG"
+
+            elif price == ema_100_15m and macd_hist_15m > 0 and rsi_15m > 50:
+                strategy_id, strategy_name, trade_type = 137, "ملامسة وارتداد من EMA 100 15د", "LONG"
+            elif price == ema_100_15m and macd_hist_15m < 0 and rsi_15m < 50:
+                strategy_id, strategy_name, trade_type = 138, "ملامسة وسقوط من EMA 100 15د", "SHORT"
+
+            elif mfi_1h > 80 and cmf_1h < 0 and price < vwap_15m:
+                strategy_id, strategy_name, trade_type = 139, "دايفرجنس السيولة (MFI عالي و CMF هابط)", "SHORT"
+            elif mfi_1h < 20 and cmf_1h > 0 and price > vwap_15m:
+                strategy_id, strategy_name, trade_type = 140, "دايفرجنس السيولة (MFI هابط و CMF صاعد)", "LONG"
+
+            elif stochastic_k_15m > 80 and williams_r_15m > -20 and price >= bb_upper_15m:
+                strategy_id, strategy_name, trade_type = 141, "ثلاثي التشبع الشرائي السريع (شورت)", "SHORT"
+            elif stochastic_k_15m < 20 and williams_r_15m < -80 and price <= bb_lower_15m:
+                strategy_id, strategy_name, trade_type = 142, "ثلاثي التشبع البيعي السريع (لونج)", "LONG"
+
+            elif adx_15m > 40 and rsi_15m > 70 and macd_hist_15m > 0:
+                strategy_id, strategy_name, trade_type = 143, "ترند سكالبينج متفجر للأعلى", "LONG"
+            elif adx_15m > 40 and rsi_15m < 30 and macd_hist_15m < 0:
+                strategy_id, strategy_name, trade_type = 144, "ترند سكالبينج متفجر للأسفل", "SHORT"
+
+            elif orderbook_imbalance_ratio > 0.7 and whale_net_flow_volume > 0 and price > ema_20_15m:
+                strategy_id, strategy_name, trade_type = 145, "هجوم الحيتان والأوردر بوك (لونج)", "LONG"
+            elif orderbook_imbalance_ratio < -0.7 and whale_net_flow_volume < 0 and price < ema_20_15m:
+                strategy_id, strategy_name, trade_type = 146, "هجوم الحيتان والأوردر بوك (شورت)", "SHORT"
+
+            elif choppiness_index_1h > 61.8 and macd_hist_15m > 0 and rsi_15m == 50:
+                strategy_id, strategy_name, trade_type = 147, "شراء تقاطع منتصف المسار العرضي", "LONG"
+            elif choppiness_index_1h > 61.8 and macd_hist_15m < 0 and rsi_15m == 50:
+                strategy_id, strategy_name, trade_type = 148, "بيع تقاطع منتصف المسار العرضي", "SHORT"
+
+            elif price > supertrend_15m and price > parabolic_sar_15m and rsi_15m < 65:
+                strategy_id, strategy_name, trade_type = 149, "سوبر تريند مع بارابوليك (صعود)", "LONG"
+            elif price < supertrend_15m and price < parabolic_sar_15m and rsi_15m > 35:
+                strategy_id, strategy_name, trade_type = 150, "سوبر تريند مع بارابوليك (هبوط)", "SHORT"
 
 
             # ==========================================
@@ -421,7 +700,7 @@ async def execute_trade(user_id, coin_name, trade_type, entry_price, strategy_id
         if trade_type_upper in ["LONG", "شراء"]:
             # في الشراء: السعر ينزل فنطرح الخسارة، ويرتفع فنجمع الربح
             support_zone = entry_price - (0.5 / coin_shares)  # خسارة 0.5$ بالضبط (منطقة التعزيز)
-            stop_loss = entry_price - (1.0 / coin_shares)     # خسارة 1.0$ بالضبط
+            stop_loss = entry_price - (2.0 / coin_shares)     # خسارة 1.0$ بالضبط
             
             target_1 = entry_price + (1.5 / coin_shares)      # ربح 1.5$
             target_2 = entry_price + (2.5 / coin_shares)      # ربح 2.5$
@@ -432,7 +711,7 @@ async def execute_trade(user_id, coin_name, trade_type, entry_price, strategy_id
         else: # SHORT (بيع)
             # في البيع: السعر يرتفع فنجمع الخسارة، وينزل فنطرح الربح
             support_zone = entry_price + (0.5 / coin_shares)  # خسارة 0.5$ بالضبط (منطقة التعزيز)
-            stop_loss = entry_price + (1.0 / coin_shares)     # خسارة 1.0$ بالضبط
+            stop_loss = entry_price + (2.0 / coin_shares)     # خسارة 1.0$ بالضبط
             
             target_1 = entry_price - (1.5 / coin_shares)      # ربح 1.5$
             target_2 = entry_price - (2.5 / coin_shares)      # ربح 2.5$
@@ -530,6 +809,11 @@ async def execute_trade(user_id, coin_name, trade_type, entry_price, strategy_id
 # ==========================================
 # 📊 دالة المراقبة الرئيسية (المصححة)
 # ==========================================
+import asyncio
+import logging
+from datetime import datetime, timezone
+# يفترض استيراد المكتبات اللازمة مثل AsyncClient و send_telegram_notification وغيرها في بداية الملف
+
 async def monitor_active_trades(supabase):
     try:
         # 1. جلب الصفقات النشطة
@@ -559,7 +843,7 @@ async def monitor_active_trades(supabase):
             try:  # <--- حماية كل صفقة بشكل منفصل حتى لا تتوقف المراقبة
                 trade_id = trade['id']
                 
-                # [إصلاح #1] معالجة اسم العملة لضمان تطابقه مع بينانس
+                # معالجة اسم العملة لضمان تطابقه مع بينانس
                 raw_coin_name = str(trade['coin_name']).replace('#', '').strip().upper()
                 search_symbol = raw_coin_name if "USDT" in raw_coin_name else raw_coin_name + "USDT"
                 
@@ -581,9 +865,6 @@ async def monitor_active_trades(supabase):
                 entry_price = float(trade['entry_price'])
                 stop_loss = float(trade.get('stop_loss') or 0.0)
                 support_zone = float(trade.get('support_zone') if trade.get('support_zone') is not None else 0.0)
-                target_1 = float(trade.get('target_1') or 0.0)
-                target_2 = float(trade.get('target_2') or 0.0)
-                target_3 = float(trade.get('target_3') or 0.0)
                 
                 used_amount = float(trade['used_amount'])
                 coin_shares = float(trade['coin_shares'])
@@ -592,18 +873,76 @@ async def monitor_active_trades(supabase):
                 updates = {}
                 close_trade = False
                 close_reason = ""
+                
+                # تحديث أعلى وأدنى سعر
                 highest = float(trade.get('highest_price_reached') or entry_price)
                 lowest = float(trade.get('lowest_price_reached') or entry_price)
-                if current_price > highest: updates['highest_price_reached'] = current_price
-                if current_price < lowest: updates['lowest_price_reached'] = current_price
+                if current_price > highest: 
+                    highest = current_price
+                    updates['highest_price_reached'] = highest
+                if current_price < lowest: 
+                    lowest = current_price
+                    updates['lowest_price_reached'] = lowest
 
-                # [إصلاح #2] التحقق من أن وقف الخسارة أكبر من صفر قبل الضرب
+                # =======================================================
+                # نظام المطاردة وتعديل وقف الخسارة (Trailing Stop-Loss)
+                # =======================================================
+                
+                # حساب أقصى ربح وصل له السعر كنسبة مئوية من رأس المال المستخدم
+                max_pnl = ((highest - entry_price) if is_long else (entry_price - lowest)) * coin_shares
+                max_pnl_percentage = (max_pnl / used_amount) * 100
+
+                new_stop_loss = stop_loss
+
+                if max_pnl_percentage >= 1.0:
+                    # إذا استمر الربح إلى 1.0 فما فوق، يطارد السعر ويبتعد عنه بنسبة 0.50
+                    target_trailing_pnl_percent = max_pnl_percentage - 0.50
+                    price_diff = (target_trailing_pnl_percent * used_amount) / (100 * coin_shares)
+                    
+                    calculated_sl = entry_price + price_diff if is_long else entry_price - price_diff
+                    
+                    if is_long and calculated_sl > stop_loss:
+                        new_stop_loss = calculated_sl
+                    elif not is_long and (stop_loss == 0 or calculated_sl < stop_loss):
+                        new_stop_loss = calculated_sl
+
+                elif max_pnl_percentage >= 0.50:
+                    # تحريك الوقف إلى سعر الدخول + فوقه بقليل لضمان رسوم المنصة
+                    # رسوم المنصة التقريبية للذهاب والعودة هي 0.08% من حجم العقد
+                    price_diff_for_breakeven = (entry_price * 0.0008) 
+                    breakeven_sl = entry_price + price_diff_for_breakeven if is_long else entry_price - price_diff_for_breakeven
+                    
+                    if is_long and breakeven_sl > stop_loss:
+                        new_stop_loss = breakeven_sl
+                    elif not is_long and (stop_loss == 0 or breakeven_sl < stop_loss):
+                        new_stop_loss = breakeven_sl
+
+                # تطبيق الوقف الجديد إذا تغير نحو الأرباح
+                if new_stop_loss != stop_loss:
+                    updates['stop_loss'] = new_stop_loss
+                    stop_loss = new_stop_loss
+
+                # =======================================================
+                # التحقق من ضرب وقف الخسارة (الأساسي أو التتبعي)
+                # =======================================================
                 if stop_loss > 0:
-                    if is_long and current_price <= stop_loss:
-                        close_trade, close_reason = True, "ضرب وقف الخسارة (SL)"
-                    elif not is_long and current_price >= stop_loss:
-                        close_trade, close_reason = True, "ضرب وقف الخسارة (SL)"
+                    if (is_long and current_price <= stop_loss) or (not is_long and current_price >= stop_loss):
+                        close_trade = True
+                        
+                        # حساب صافي الأرباح اللحظية لمعرفة ما إذا كانت الصفقة أغلقت بربح أم بخسارة
+                        final_pnl = ((current_price - entry_price) if is_long else (entry_price - current_price)) * coin_shares
+                        final_fees = (used_amount * leverage) * 0.0004
+                        net_final_pnl = final_pnl - final_fees
+                        
+                        # تغيير وصف الإغلاق بناءً على النتيجة الموجبة أو السالبة
+                        if net_final_pnl > 0:
+                            close_reason = "ناجحة - جني أرباح تتبعي (Trailing Stop) 🚀"
+                        else:
+                            close_reason = "ضرب وقف الخسارة (SL) ❌"
 
+                # =======================================================
+                # أنظمة التعزيز والتخفيف (إذا لم تُغلق الصفقة)
+                # =======================================================
                 if not close_trade:
                     # نظام التعزيز (DCA)
                     if support_zone > 0: 
@@ -648,21 +987,16 @@ async def monitor_active_trades(supabase):
                                 updates['support_zone'] = current_price * 0.995 if is_long else current_price * 1.005
                                 used_amount, coin_shares = updates['used_amount'], updates['coin_shares']
 
-                    # תتبع الأرباح (Trailing Stop)
-                    if target_3 > 0 and ((is_long and current_price >= target_3) or (not is_long and current_price <= target_3)):
-                        close_trade, close_reason = True, "تحقيق الهدف الأخير"
-                    elif target_2 > 0 and ((is_long and current_price >= target_2) or (not is_long and current_price <= target_2)):
-                        if (is_long and stop_loss < target_1) or (not is_long and stop_loss > target_1): updates['stop_loss'] = target_1
-                    elif target_1 > 0 and ((is_long and current_price >= target_1) or (not is_long and current_price <= target_1)):
-                        if (is_long and stop_loss < entry_price) or (not is_long and stop_loss > entry_price): updates['stop_loss'] = entry_price
 
                 # =======================================================
-                # تحديث قاعدة البيانات
+                # تحديث قاعدة البيانات وإغلاق الصفقة
                 # =======================================================
                 if close_trade:
                     pnl_value = ((current_price - entry_price) if is_long else (entry_price - current_price)) * coin_shares
                     closing_fee = (used_amount * leverage) * 0.0004
                     net_pnl = pnl_value - closing_fee
+                    
+                    # استرجاع مبلغ الصفقة + الربح الصافي (نفس بينانس بالضبط)
                     total_return_to_wallet = used_amount + net_pnl
                     pnl_percentage = (pnl_value / used_amount) * 100
 
@@ -731,19 +1065,17 @@ async def monitor_active_trades(supabase):
                         f"💳 رصيد المحفظة الاستراتجية : {format_num(current_bal + total_return_to_wallet, 2)}$",
                         "", "ــــــــــــــــــــــــــــــــــــ"
                     ]
-                    # 1. السطر المفقود: دمج قائمة النصوص في متغير نصي واحد
                     notification_msg = "\n".join(msg_lines)
 
-                    # 2. إرسال الإشعار في الخلفية لعدم تعطيل مراقبة باقي الصفقات
+                    # إرسال الإشعار في الخلفية
                     asyncio.create_task(send_telegram_notification(notification_msg, tell_2))       
                     
-                    # 👇👇👇 هنا تضع الكود الجديد لإيقاظ الرادار 👇👇👇
+                    # إيقاظ الرادار للبحث عن فرصة جديدة
                     logging.info("♻️ تم إغلاق صفقة، جاري إيقاظ الرادار للبحث عن فرصة جديدة...")
                     asyncio.create_task(intelligence_scanner())
-                    # 👆👆👆 نهاية الكود الجديد 👆👆👆
                     
                 else: 
-                    # [إصلاح #4] التحديث المستمر للسعر والنسبة (مهم جداً للوحة التحكم)
+                    # التحديث المستمر للسعر والنسبة (مهم جداً للوحة التحكم)
                     updates['current_price'] = current_price
                     unrealized_pnl = ((current_price - entry_price) if is_long else (entry_price - current_price)) * coin_shares
                     updates['pnl_percentage'] = round((unrealized_pnl / used_amount) * 100, 2)
@@ -756,8 +1088,6 @@ async def monitor_active_trades(supabase):
 
     except Exception as e:
         logging.error(f"❌ حدث خطأ رئيسي في دالة المراقبة: {e}")
-
-
 
 # 1. 🟢 ضع هذا الكلاس قبل "نظام الإنعاش الأبدي" (في منطقة عامة خارج الدوال)
 class TelegramLoggerHandler(logging.Handler):
