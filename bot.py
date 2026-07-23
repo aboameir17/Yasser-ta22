@@ -245,7 +245,7 @@ async def intelligence_scanner():
             elif orderbook_imbalance_ratio < -0.4 and volume_delta_1h < 0 and price < ema_20_15m:
                 strategy_id, strategy_name, trade_type = 4, "خلل الأوردر بوك البيعي", "SHORT"
             elif whale_net_flow_volume > 500000 and rsi_15m < 65 and price > ema_20_1h:
-                strategy_id, strategy_name, trade_type = 5, "تدفق حيتان مفاجئ (LONG)", "LONG"
+                strategy_id, strategy_name, trade_type = 5, "تدفق حيتان مفاجئ ", "SHORT"
             elif whale_net_flow_volume < -500000 and rsi_15m > 35 and price < ema_20_1h:
                 strategy_id, strategy_name, trade_type = 6, "تخارج حيتان مفاجئ (SHORT)", "SHORT"
 
@@ -432,7 +432,7 @@ async def intelligence_scanner():
             # ☁️ استراتيجيات سحابة الإيشيموكو (Ichimoku) اللحظية
             # ==========================================
             elif price > ichimoku_cloud_top_1h and price > ema_20_15m and rsi_15m < 60:
-                strategy_id, strategy_name, trade_type = 77, "استمرار فوق سحابة إيشيموكو 1س", "LONG"
+                strategy_id, strategy_name, trade_type = 77, "استمرار فوق سحابة إيشيموكو 1س", "SHORT"
             elif price < ichimoku_cloud_bottom_1h and price < ema_20_15m and rsi_15m > 40:
                 strategy_id, strategy_name, trade_type = 78, "استمرار تحت سحابة إيشيموكو 1س", "SHORT"
             elif price > ichimoku_conversion_1h and ichimoku_conversion_1h > ichimoku_base_1h:
