@@ -626,7 +626,7 @@ async def execute_trade(user_id, coin_name, trade_type, entry_price, strategy_id
         # ==========================================
         strategy_trades_check = supabase.table("active_trades").select("id").eq("user_id", str(user_id)).eq("strategy_id", strategy_id).eq("status", "نشطة").execute()
         
-        if strategy_trades_check.data and len(strategy_trades_check.data) >= 5:
+        if strategy_trades_check.data and len(strategy_trades_check.data) >= 10:
             print(f"⏳ تجاهل فتح صفقة {coin_name}: الاستراتيجية رقم {strategy_id} ('{strategy_name}') وصلت للحد الأقصى (5 صفقات نشطة). ننتظر إغلاق إحداها.")
             return False
 
